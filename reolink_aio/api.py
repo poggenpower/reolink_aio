@@ -153,6 +153,7 @@ class Host:
         bc_only: bool = False,
         bc_connection: ConnectionEnum = ConnectionEnum.unknown,
         uid: str = UNKNOWN,
+        bc_udp_local_port: int = 0,
     ) -> None:
         self._send_mutex = asyncio.Lock()
         self._login_mutex = asyncio.Lock()
@@ -194,7 +195,7 @@ class Host:
 
         ##############################################################################
         # Baichuan protocol (port 9000)
-        self.baichuan = Baichuan(host=host, username=username, password=password, port=bc_port, connection_type=bc_connection, http_api=self)
+        self.baichuan = Baichuan(host=host, username=username, password=password, port=bc_port, connection_type=bc_connection, udp_local_port=bc_udp_local_port, http_api=self)
         self.baichuan_only: bool = bc_only
 
         ##############################################################################

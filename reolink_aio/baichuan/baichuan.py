@@ -144,11 +144,16 @@ class Baichuan:
         http_api: Host,
         port: int = DEFAULT_BC_PORT,
         connection_type: ConnectionEnum = ConnectionEnum.unknown,
+        udp_local_port: int = 0,
     ) -> None:
         self.http_api = http_api
 
+        if not 0 <= udp_local_port <= 65535:
+            raise ValueError(f"Baichuan host {host}: udp_local_port must be between 0 and 65535, got {udp_local_port}")
+
         self._host: str = host
         self.port: int = port
+        self.udp_local_port: int = udp_local_port  # 0 = random local port, otherwise a fixed local port for UDP connections
         self._username: str = username
         self._password: str = password
         self._nonce: str | None = None
@@ -246,7 +251,7 @@ class Baichuan:
         """Initialize the protocol and make the connection if needed."""
         if self._connection is None or self.connection_type == ConnectionEnum.unknown:
             if self.connection_type in {ConnectionEnum.udp, ConnectionEnum.udp_tcp}:
-                self._connection = BaichuanUdpConnection(self._host, 0, self._push_callback, self._close_callback, uid=self.http_api.uid)
+                self._connection = BaichuanUdpConnection(self._host, self.udp_local_port, self._push_callback, self._close_callback, uid=self.http_api.uid)
             elif self.connection_type == ConnectionEnum.tcp:
                 self._connection = BaichuanTcpConnection(self._host, self.port, self._push_callback, self._close_callback)
             elif self.connection_type == ConnectionEnum.unknown:
@@ -261,7 +266,7 @@ class Baichuan:
             raise ReolinkConnectionError(f"Baichuan host {self._host}: _connect_find_type should only be used with {ConnectionEnum.unknown}")
 
         tcp_con = BaichuanTcpConnection(self._host, self.port, self._push_callback, self._close_callback)
-        udp_con = BaichuanUdpConnection(self._host, 0, self._push_callback, self._close_callback, uid=self.http_api.uid)
+        udp_con = BaichuanUdpConnection(self._host, self.udp_local_port, self._push_callback, self._close_callback, uid=self.http_api.uid)
         tasks: dict[asyncio.Task, BaichuanTcpConnection | BaichuanUdpConnection] = {
             self._loop.create_task(tcp_con.connect()): tcp_con,
             self._loop.create_task(udp_con.connect()): udp_con,

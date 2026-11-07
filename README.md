@@ -106,6 +106,16 @@ if __name__ == "__main__":
     asyncio.run(print_mac_address())
 ````
 
+### Baichuan UDP with a fixed local port
+
+By default the Baichuan UDP connection uses a random local UDP port. Some setups need a fixed port, for example behind a firewall that allows only one UDP port from the camera, or in a container where the port must be published. The UDP protocol tells the camera which local port to use, so the port must stay the same from start to end, without NAT rewriting it:
+````python
+from reolink_aio.api import Host
+from reolink_aio.enums import ConnectionEnum
+
+host = Host('192.168.1.109', 'admin', 'admin1234', bc_connection=ConnectionEnum.udp, bc_only=True, bc_udp_local_port=44230)
+````
+
 ### TCP push event example
 This is an example of how to receive TCP push events.
 The callback will be called each time a push is received.
